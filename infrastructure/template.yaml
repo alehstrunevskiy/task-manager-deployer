@@ -1,22 +1,19 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Task Manager Deployment Infrastructure'
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Task Manager Deployment Infrastructure"
 
 Parameters:
   BaseDomain:
     Type: String
-    Description: 'Base domain for deployments'
-  
+    Description: "Base domain for deployments"
   HostedZoneId:
     Type: String
-    Description: 'Route53 Hosted Zone ID'
-  
+    Description: "Route53 Hosted Zone ID"
   EC2IP:
     Type: String
-    Description: 'EC2 Instance IP Address'
-    
+    Description: "EC2 Instance IP Address"
   DeploymentBucket:
     Type: String
-    Description: 'S3 Bucket for Lambda deployment packages'
+    Description: "S3 Bucket for Lambda deployment packages"
 
 Resources:
   # API Gateway
@@ -28,15 +25,6 @@ Resources:
         Types:
           - REGIONAL
 
-  # API Gateway Deployment
-  ApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    DependsOn:
-      - DeploymentMethod
-    Properties:
-      RestApiId: !Ref ApiGateway
-      StageName: prod
-
   # API Resource
   DeploymentResource:
     Type: AWS::ApiGateway::Resource
@@ -45,18 +33,54 @@ Resources:
       ParentId: !GetAtt ApiGateway.RootResourceId
       PathPart: deploy
 
-  # API Method
+  # API Methods
   DeploymentMethod:
     Type: AWS::ApiGateway::Method
     Properties:
-      RestApiId: !Ref ApiGateway
-      ResourceId: !Ref DeploymentResource
       HttpMethod: POST
+      ResourceId: !Ref DeploymentResource
+      RestApiId: !Ref ApiGateway
       AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateSubdomainFunction.Arn}/invocations"
+        Uri: !Sub 
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
+          - LambdaArn: !GetAtt DeployAppFunction.Arn
+
+  OptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: OPTIONS
+      ResourceId: !Ref DeploymentResource
+      RestApiId: !Ref ApiGateway
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'https://www.pmtracker.io'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Headers: true
+
+  # API Deployment
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: 
+      - DeploymentMethod
+      - OptionsMethod
+    Properties:
+      RestApiId: !Ref ApiGateway
+      StageName: prod
 
   # Lambda Functions
   CreateSubdomainFunction:
@@ -85,8 +109,8 @@ Resources:
         S3Key: lambda/deploy-app.zip
       Environment:
         Variables:
-          GITHUB_REPO_URL: 'git@github.com:alehstrunevskiy/task-manager.git'
-          DEPLOY_PATH: '/var/www/html'
+          GITHUB_REPO_URL: "git@github.com:alehstrunevskiy/task-manager.git"
+          DEPLOY_PATH: "/var/www/html"
 
   NotificationFunction:
     Type: AWS::Lambda::Function
@@ -101,12 +125,12 @@ Resources:
         Variables:
           SNS_TOPIC_ARN: !Ref NotificationTopic
 
-  # IAM Role for Lambda
+  # IAM Role
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -123,5 +147,5 @@ Resources:
 
 Outputs:
   ApiEndpoint:
-    Description: 'API Gateway endpoint URL'
+    Description: "API Gateway endpoint URL"
     Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod/deploy"
