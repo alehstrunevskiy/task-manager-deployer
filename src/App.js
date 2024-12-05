@@ -1,32 +1,32 @@
-import React from 'react';
-import { Amplify } from 'aws-amplify';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { Box, AppBar, Toolbar, Typography, Container } from '@mui/material';
-import DeploymentForm from './components/DeploymentForm';
+import React from "react";
+import { Amplify } from "aws-amplify";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { Box, AppBar, Toolbar, Typography, Container } from "@mui/material";
+import DeploymentForm from "./components/DeploymentForm";
 
+console.log(process.env.REACT_APP_API_ENDPOINT);
 Amplify.configure({
   API: {
-    endpoints: [
-      {
-        name: 'deploymentApi',
+    REST: {
+      deployAPI: {
         endpoint: process.env.REACT_APP_API_ENDPOINT,
-        region: process.env.REACT_APP_REGION
-      }
-    ]
-  }
+        region: process.env.REACT_APP_REGION,
+      },
+    },
+  },
 });
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: "#1976d2",
     },
     secondary: {
-      main: '#dc004e',
+      main: "#dc004e",
     },
     background: {
-      default: '#f5f5f5',
+      default: "#f5f5f5",
     },
   },
   typography: {
@@ -45,7 +45,7 @@ const theme = createTheme({
     MuiTextField: {
       styleOverrides: {
         root: {
-          '& .MuiOutlinedInput-root': {
+          "& .MuiOutlinedInput-root": {
             borderRadius: 8,
           },
         },
