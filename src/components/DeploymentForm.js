@@ -72,11 +72,22 @@ const DeploymentForm = () => {
 
       console.log(response_1);
       const { instanceId, publicIp, publicDns } = response_1.data;
+      setFormData({
+        ...formData,
+        instanceId: instanceId,
+        publicIp: publicIp,
+        publicDns: publicDns,
+      });
       setActiveStep(1);
 
       const response_2 = await axios.post(
         "https://4wbux5zav5bigeudeptxd6at5i0gsyhz.lambda-url.us-east-2.on.aws/",
-        { subdomain: formData.subdomain, instanceId, publicIp, publicDns },
+        {
+          subdomain: formData.subdomain,
+          instanceId: formData.instanceId,
+          publicIp: formData.publicIp,
+          publicDns: formData.publicDns,
+        },
         {
           headers: {
             "Content-Type": "application/json",
