@@ -1,21 +1,8 @@
 import React from "react";
-import { Amplify } from "aws-amplify";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Box, AppBar, Toolbar, Typography, Container } from "@mui/material";
 import DeploymentForm from "./components/DeploymentForm";
-
-console.log(process.env.REACT_APP_API_ENDPOINT);
-Amplify.configure({
-  API: {
-    REST: {
-      deployAPI: {
-        endpoint: process.env.REACT_APP_API_ENDPOINT,
-        region: process.env.REACT_APP_REGION,
-      },
-    },
-  },
-});
 
 const theme = createTheme({
   palette: {

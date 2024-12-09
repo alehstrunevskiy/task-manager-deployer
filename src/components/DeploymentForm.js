@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { post } from "aws-amplify/api";
+import axios from "axios";
 import {
   Box,
   TextField,
@@ -9,6 +9,9 @@ import {
   Alert,
   Container,
   CircularProgress,
+  Stepper,
+  Step,
+  StepLabel,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -26,6 +29,12 @@ const FormContainer = styled(Box)(({ theme }) => ({
   gap: theme.spacing(3),
 }));
 
+const steps = [
+  "Creating EC2 Instance",
+  "Creating Subdomain",
+  "Sending Notification Email",
+];
+
 const DeploymentForm = () => {
   const [formData, setFormData] = useState({
     subdomain: "",
@@ -34,6 +43,7 @@ const DeploymentForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
 
   const handleChange = (e) => {
     setFormData({
@@ -47,18 +57,47 @@ const DeploymentForm = () => {
     setLoading(true);
     setError(null);
     setSuccess(false);
+    setActiveStep(0);
 
     try {
-      const response = await post({
-        apiName: "deployAPI",
-        path: "/deploy",
-        options: {
-          body: formData,
+      const response_1 = await axios.post(
+        "https://zhwmafylcth7lqjerghxej75ay0njrdd.lambda-url.us-east-2.on.aws/",
+        { subdomain: formData.subdomain },
+        {
           headers: {
             "Content-Type": "application/json",
           },
-        },
-      });
+        }
+      );
+
+      console.log(response_1);
+      const { instanceId, publicIp, publicDns } = response_1.data;
+      setActiveStep(1);
+
+      const response_2 = await axios.post(
+        "https://4wbux5zav5bigeudeptxd6at5i0gsyhz.lambda-url.us-east-2.on.aws/",
+        { subdomain: formData.subdomain, instanceId, publicIp, publicDns },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log(response_2);
+      setActiveStep(2);
+
+      // const response_3 = await post({
+      //   apiName: "sendNotificationEmail",
+      //   path: "/",
+      //   options: {
+      //     body: formData,
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //   },
+      // });
+      setActiveStep(3);
+
       setSuccess(true);
     } catch (err) {
       setError(err.message);
@@ -85,6 +124,14 @@ const DeploymentForm = () => {
             Deployment started successfully!
           </Alert>
         )}
+
+        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
 
         <form onSubmit={handleSubmit}>
           <FormContainer>
