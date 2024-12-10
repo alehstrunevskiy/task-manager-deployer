@@ -64,7 +64,7 @@ const DeploymentForm = () => {
 
     try {
       const response_1 = await axios.post(
-        "https://zhwmafylcth7lqjerghxej75ay0njrdd.lambda-url.us-east-2.on.aws/",
+        process.env.REACT_APP_DEPLOY_API,
         { subdomain: formData.subdomain },
         {
           headers: {
@@ -79,7 +79,7 @@ const DeploymentForm = () => {
 
       console.log(instanceId, publicIp, publicDns);
       const response_2 = await axios.post(
-        "https://4wbux5zav5bigeudeptxd6at5i0gsyhz.lambda-url.us-east-2.on.aws/",
+        process.env.REACT_APP_SUBDOMAIN_API,
         {
           subdomain: formData.subdomain,
           instanceId: instanceId,
@@ -96,10 +96,13 @@ const DeploymentForm = () => {
       setActiveStep(2);
 
       const response_3 = await axios.post(
-        "https://lvwtzb7jn62dbiodj6uo5bjiau0zmdak.lambda-url.us-east-2.on.aws/",
+        "https://api.smtp2go.com/v3/email/send",
         {
-          subdomain: formData.subdomain,
-          email: formData.email,
+          api_key: process.env.REACT_APP_SMTP_API_KEY,
+          to: [formData.email],
+          sender: "NoReply@pmtracker.io",
+          subject: "Your task manager has been created",
+          text_body: `Your new task manager is live now, please check this URL: https://${formData.subdomain}.pmtracker.io`,
         },
         {
           headers: {
@@ -107,9 +110,9 @@ const DeploymentForm = () => {
           },
         }
       );
-      console.log(response_3);
-      setActiveStep(3);
 
+      console.log("Email sent successfully:", response_3);
+      setActiveStep(3);
       setSuccess(true);
     } catch (err) {
       setError(err.message);
