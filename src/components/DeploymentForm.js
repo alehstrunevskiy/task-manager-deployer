@@ -39,6 +39,9 @@ const DeploymentForm = () => {
   const [formData, setFormData] = useState({
     subdomain: "",
     email: "",
+    instanceId: "",
+    publicIp: "",
+    publicDns: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -71,22 +74,17 @@ const DeploymentForm = () => {
       );
 
       console.log(response_1);
-      const { instanceId, publicIp, publicDns } = response_1.data;
-      setFormData({
-        ...formData,
-        instanceId: instanceId,
-        publicIp: publicIp,
-        publicDns: publicDns,
-      });
+      const { instanceId, publicIp, publicDns } = response_1?.data?.data;
       setActiveStep(1);
 
+      console.log(instanceId, publicIp, publicDns);
       const response_2 = await axios.post(
         "https://4wbux5zav5bigeudeptxd6at5i0gsyhz.lambda-url.us-east-2.on.aws/",
         {
           subdomain: formData.subdomain,
-          instanceId: formData.instanceId,
-          publicIp: formData.publicIp,
-          publicDns: formData.publicDns,
+          instanceId: instanceId,
+          publicDns: publicDns,
+          publicIp: publicIp,
         },
         {
           headers: {
@@ -97,16 +95,19 @@ const DeploymentForm = () => {
       console.log(response_2);
       setActiveStep(2);
 
-      // const response_3 = await post({
-      //   apiName: "sendNotificationEmail",
-      //   path: "/",
-      //   options: {
-      //     body: formData,
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //   },
-      // });
+      const response_3 = await axios.post(
+        "https://lvwtzb7jn62dbiodj6uo5bjiau0zmdak.lambda-url.us-east-2.on.aws/",
+        {
+          subdomain: formData.subdomain,
+          email: formData.email,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log(response_3);
       setActiveStep(3);
 
       setSuccess(true);
@@ -132,7 +133,7 @@ const DeploymentForm = () => {
 
         {success && (
           <Alert severity="success" sx={{ mb: 3 }}>
-            Deployment started successfully!
+            Deployment completed successfully!
           </Alert>
         )}
 
