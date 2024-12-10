@@ -12,6 +12,8 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Link,
+  InputAdornment,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -137,6 +139,11 @@ const DeploymentForm = () => {
         {success && (
           <Alert severity="success" sx={{ mb: 3 }}>
             Deployment completed successfully!
+            <br />
+            Click <Link href={`${formData.subdomain}.pmtracker.io`}>
+              here
+            </Link>{" "}
+            to start with your new task manager.
           </Alert>
         )}
 
@@ -159,6 +166,13 @@ const DeploymentForm = () => {
               required
               variant="outlined"
               helperText="Enter your desired subdomain"
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">.pmtracker.io</InputAdornment>
+                  ),
+                },
+              }}
             />
 
             <TextField
