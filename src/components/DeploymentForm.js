@@ -64,7 +64,7 @@ const DeploymentForm = () => {
   const [success, setSuccess] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [isSubdomainValid, setIsSubdomainValid] = useState(true);
-  const [isPendingModalOpened, setIsPendingModalOpened] = useState(true);
+  const [isPendingModalOpened, setIsPendingModalOpened] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -193,7 +193,7 @@ const DeploymentForm = () => {
           )}
 
           <form onSubmit={handleSubmit}>
-            <FormContainer>
+            <FormContainer marginTop={6}>
               <TextField
                 fullWidth
                 label="Subdomain"
